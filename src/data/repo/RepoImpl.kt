@@ -10,17 +10,17 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.InsertStatement
 
 class RepoImpl: Repository {
-    override suspend fun registerUser(email: String, password: String, userName: String): User? {
+    override suspend fun registerUser(email: String, password: String, userName: String): Boolean {
         var statement: InsertStatement<Number>? = null
         dbQuery {
             statement = UsersTable.insert {
                 it[UsersTable.userEmail] = email
                 it[UsersTable.password] = password
-                it[UsersTable.displayName] = displayName
+                it[UsersTable.displayName] = userName
             }
         }
 
-        return rowToUser(statement?.resultedValues?.get(0))
+    return rowToUser(statement?.resultedValues?.get(0)) != null
     }
 
     override suspend fun checkIfUserExists(email: String): User? = dbQuery {
@@ -34,16 +34,19 @@ class RepoImpl: Repository {
 
     override suspend fun checkPasswordForEmail(email: String, password: String): Boolean {
 
-        val actualPassword = dbQuery {
-           val user=  UsersTable.select {
+        val user = dbQuery {
+          UsersTable.select {
                 UsersTable.userEmail.eq(email)
             }.map {
                rowToUser(it)
            }
-            return@dbQuery user[0]?.password ?:  ""
         }
 
-        return checkHashForPassword(password, actualPassword)
+        return if(user.isEmpty()){
+            false
+        }else{
+            checkHashForPassword(password, user[0]!!.password)
+        }
     }
 
     private fun rowToUser(row: ResultRow?): User? { //converts row to user data class

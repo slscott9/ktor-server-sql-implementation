@@ -1,6 +1,8 @@
 package com.sscott
 
 import com.sscott.data.repo.RepoImpl
+import com.sscott.data.routes.loginRoute
+import com.sscott.data.routes.registerRoute
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.features.*
@@ -22,7 +24,7 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
 
-    Database.connect("jdbc:mysql://localhost:3306/cemetery?verifyServerCertificate=false", driver = "com.mysql.jdbc.Driver",
+    Database.connect("jdbc:mysql://localhost:3306/quizlet_clone?verifyServerCertificate=false", driver = "com.mysql.jdbc.Driver",
             user = "root", password = "Allstars9")
 
     initDB()
@@ -36,7 +38,8 @@ fun Application.module(testing: Boolean = false) {
         configureAuth(repo)
     }
     install(Routing) {
-
+        loginRoute(repo)
+        registerRoute(repo)
     } //enables url endpoints to make this REST api
 
     //Specifies what type of data ktor server will serve
@@ -63,11 +66,6 @@ private fun Authentication.Configuration.configureAuth(repo: RepoImpl) {
         }
     }
 }
-
-
-
-
-
 suspend fun <T> dbQuery(
         block: () -> T): T =
         withContext(Dispatchers.IO) {

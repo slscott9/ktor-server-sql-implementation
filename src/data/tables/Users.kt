@@ -2,11 +2,10 @@ package com.sscott.data.tables
 
 import org.jetbrains.exposed.sql.Table
 
-//TODO need to implement the USER table in order to verify users
 object UsersTable : Table() {
     val userEmail = varchar("email", 128).uniqueIndex()
     val displayName = varchar("display_name", 256)
-    val password = varchar("password", 16)
+    val password = varchar("password", 256)
 }
 
 object FolderTable: Table() {
