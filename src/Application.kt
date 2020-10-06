@@ -1,6 +1,6 @@
 package com.sscott
 
-import com.sscott.data.entities.Books
+import com.sscott.data.repo.RepoImpl
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.features.*
@@ -9,6 +9,8 @@ import io.ktor.response.*
 import io.ktor.request.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -23,12 +25,15 @@ fun Application.module(testing: Boolean = false) {
     Database.connect("jdbc:mysql://localhost:3306/cemetery?verifyServerCertificate=false", driver = "com.mysql.jdbc.Driver",
             user = "root", password = "Allstars9")
 
-    createTables()
+    initDB()
+
+    val repo = RepoImpl()
+
     install(DefaultHeaders) //append day to responses from the ktor server
     install(CallLogging) //log incoming and outgoing http requests
 
     install(Authentication){
-//        configureAuth()
+        configureAuth(repo)
     }
     install(Routing) {
 
@@ -43,25 +48,28 @@ fun Application.module(testing: Boolean = false) {
 
 }
 
-//private fun Authentication.Configuration.configureAuth() {
-//    basic {
-//        realm = "Cemetery Server"
-//
-//        validate {credentials ->
-//            val email = credentials.name
-//            val password = credentials.password
-//
-//            if(checkPasswordForEmail(email, password)){
-//                UserIdPrincipal(email)
-//            }else null
-//
-//        }
-//    }
-//}
+private fun Authentication.Configuration.configureAuth(repo: RepoImpl) {
+    basic {
+        realm = "Quizlet Server"
 
+        validate {credentials ->
+            val email = credentials.name
+            val password = credentials.password
 
-private fun createTables() = transaction {
-    SchemaUtils.create(
-            Books
-    )
+            if(repo.checkPasswordForEmail(email, password)){
+                UserIdPrincipal(email)
+            }else null
+
+        }
+    }
 }
+
+
+
+
+
+suspend fun <T> dbQuery(
+        block: () -> T): T =
+        withContext(Dispatchers.IO) {
+            transaction { block() }
+        }
