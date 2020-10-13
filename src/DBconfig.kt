@@ -2,6 +2,7 @@ package com.sscott
 
 import com.sscott.data.tables.FolderTable
 import com.sscott.data.tables.SetTable
+import com.sscott.data.tables.TermTable
 import com.sscott.data.tables.UsersTable
 import io.ktor.application.*
 import io.ktor.util.*
@@ -24,5 +25,9 @@ private fun createTables() = transaction {
     )
     SchemaUtils.create(
         FolderTable
+    )
+
+    SchemaUtils.create(
+            TermTable
     )
 }

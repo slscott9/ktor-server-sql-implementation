@@ -1,8 +1,7 @@
 package com.sscott
 
 import com.sscott.data.repo.RepoImpl
-import com.sscott.data.routes.loginRoute
-import com.sscott.data.routes.registerRoute
+import com.sscott.data.routes.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.features.*
@@ -40,6 +39,8 @@ fun Application.module(testing: Boolean = false) {
     install(Routing) {
         loginRoute(repo)
         registerRoute(repo)
+        setRoute(repo)
+        folderRoute(repo)
     } //enables url endpoints to make this REST api
 
     //Specifies what type of data ktor server will serve
