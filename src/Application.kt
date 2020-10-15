@@ -10,7 +10,9 @@ import io.ktor.response.*
 import io.ktor.request.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -67,6 +69,7 @@ private fun Authentication.Configuration.configureAuth(repo: RepoImpl) {
         }
     }
 }
+
 suspend fun <T> dbQuery(
         block: () -> T): T =
         withContext(Dispatchers.IO) {

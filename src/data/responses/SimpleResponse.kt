@@ -10,9 +10,3 @@ data class SimpleResponse(
     val successful : Boolean,
     val message : String
 )
-
-data class SearchResponse(
-        val successful: Boolean,
-        val message: String,
-        val setList: List<Set>
-)

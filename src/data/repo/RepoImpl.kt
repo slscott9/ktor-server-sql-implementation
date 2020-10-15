@@ -1,16 +1,13 @@
 package com.sscott.data.repo
 
-import com.sscott.data.requests.AddFolderRequest
-import com.sscott.data.requests.AddSetRequest
 import com.sscott.data.security.checkHashForPassword
 import com.sscott.data.tables.*
 import com.sscott.data.tables.Set
 import com.sscott.dbQuery
-import jdk.internal.jline.internal.Log
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.InsertStatement
 
-class RepoImpl: Repository {
+class RepoImpl : Repository {
 
     override suspend fun registerUser(email: String, password: String, userName: String): Boolean {
         var statement: InsertStatement<Number>? = null
@@ -22,7 +19,7 @@ class RepoImpl: Repository {
             }
         }
 
-    return rowToUser(statement?.resultedValues?.get(0)) != null
+        return rowToUser(statement?.resultedValues?.get(0)) != null
     }
 
     override suspend fun checkIfUserExists(email: String): User? = dbQuery {
@@ -32,106 +29,57 @@ class RepoImpl: Repository {
         }.map {
             rowToUser(it)
         }.singleOrNull()
+
     }
 
     override suspend fun checkPasswordForEmail(email: String, password: String): Boolean {
 
         val user = dbQuery {
-          UsersTable.select {
+            UsersTable.select {
                 UsersTable.userEmail.eq(email)
             }.map {
-               rowToUser(it)
-           }
+                rowToUser(it)
+            }
         }
 
-        return if(user.isEmpty()){
+        return if (user.isEmpty()) {
             false
-        }else{
+        } else {
             checkHashForPassword(password, user[0]!!.password)
         }
     }
 
-    override suspend fun addNewSet(setToAddSetRequest: AddSetRequest) : Set?{
+    override suspend fun addNewSet(newSet: Set): Set? {
 
         var statement: InsertStatement<Number>? = null
+
         dbQuery {
             statement = SetTable.insert {
-                it[SetTable.userEmail] = setToAddSetRequest.set.userEmail
-                it[setName] = setToAddSetRequest.set.setName
-                it[folderId] = setToAddSetRequest.set.folderId
+                it[setId] = newSet.setId
+                it[folderId] = newSet.folderId
+                it[userEmail] = newSet.userEmail
+                it[setName] = newSet.setName
+                it[termCount] = newSet.termCount
             }
         }
-
-
         return rowToSet(statement?.resultedValues?.get(0))
     }
 
-    override suspend fun addNewTerms(setID: Int, setToAddSetRequest: AddSetRequest): Boolean {
+
+    override suspend fun addNewTerms(termList: List<Term>): Boolean {
 
         return dbQuery {
-            val result = TermTable.batchInsert(setToAddSetRequest.termList){
-                this[TermTable.term] = it.term
+            val result = TermTable.batchInsert(termList) {
+                this[TermTable.termId] = it.termId
                 this[TermTable.answer] = it.answer
-                this[TermTable.setId] = setID
+                this[TermTable.question] = it.question
+                this[TermTable.answer] = it.answer
 
             }
-            return@dbQuery result.size == setToAddSetRequest.termList.size
+            return@dbQuery result.size == termList.size
         }
     }
 
-    override suspend fun addFolder(addFolderRequest: AddFolderRequest): Boolean {
-        var statement: InsertStatement<Number>? = null
-        dbQuery {
-            statement = FolderTable.insert {
-                it[name] = addFolderRequest.folderName
-                it[userEmail] = addFolderRequest.userEmail
-            }
-        }
-
-        return rowToFolder(statement?.resultedValues?.get(0)) != null
-
-    }
-
-    override suspend fun getAllSetsForUserEmail(userEmail: String): List<Set> {
-        return dbQuery {
-            SetTable.select {
-                SetTable.userEmail.eq(userEmail)
-            }.mapNotNull {
-                rowToSet(it)
-            }
-        }
-
-    }
-
-    override suspend fun getAllFoldersForUserEmail(userEmail: String): List<Folder> {
-        return dbQuery {
-            FolderTable.select {
-                FolderTable.userEmail.eq(userEmail)
-            }.mapNotNull {
-                rowToFolder(it)
-            }
-        }
-    }
-
-    override suspend fun getAllSetsInFolder(folderId: Int): List<Set> {
-        return dbQuery {
-            SetTable.select {
-                SetTable.folderId.eq(folderId)
-            }.mapNotNull {
-                rowToSet(it)
-            }
-        }
-    }
-
-    override suspend fun getSetsFromSearchResult(userEmail: String, search: String): List<Set> {
-        return dbQuery {
-            SetTable.select {
-                SetTable.setName.eq(search) and  SetTable.userEmail.eq(userEmail)
-            }.mapNotNull {
-                rowToSet(it)
-            }
-        }
-    }
 
     private fun rowToUser(row: ResultRow?): User? { //converts row to user data class
         if (row == null) {
@@ -144,31 +92,22 @@ class RepoImpl: Repository {
         )
     }
 
-    private fun rowToSet(row: ResultRow?) : Set? {
-        if(row == null) return null
 
+    private fun rowToSet(row: ResultRow?): Set? {
+        if (row == null) {
+            return null
+        }
         return Set(
+                setName = row[SetTable.setName],
+                setId = row[SetTable.setId],
                 folderId = row[SetTable.folderId],
                 userEmail = row[SetTable.userEmail],
-                setName = row[SetTable.setName],
-                setId = row[SetTable.setId]
-
+                termCount = row[SetTable.termCount]
         )
     }
 
-//    private fun rowToSet(row: ResultRow?) : Set?  {
-//        if(row == null){
-//            return null
-//        }
-//        return Set(
-//                setName = row[SetTable.setName],
-//                term = row[SetTable.term],
-//                answer = row[SetTable.answer]
-//        )
-//    }
-
-    private fun rowToFolder(row: ResultRow?) : Folder? {
-        if(row == null){
+    private fun rowToFolder(row: ResultRow?): Folder? {
+        if (row == null) {
             return null
         }
 
@@ -176,11 +115,22 @@ class RepoImpl: Repository {
                 name = row[FolderTable.name],
                 folderId = row[FolderTable.folderId],
                 userEmail = row[FolderTable.userEmail],
-                userName = row[FolderTable.displayName],
+                userName = row[FolderTable.userName],
                 description = row[FolderTable.description]
         )
     }
 
+    private fun rowToTerm(row: ResultRow?): Term? {
+        if (row == null) {
+            return null
+        }
+        return Term(
+                termId = row[TermTable.termId],
+                question = row[TermTable.question],
+                answer = row[TermTable.answer],
+                setId = row[TermTable.setId]
+        )
+    }
 
 
 //how to convert a query into usable objects for a get request

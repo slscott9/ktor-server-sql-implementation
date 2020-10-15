@@ -31,16 +31,17 @@ data class User (
  */
 
 object FolderTable: Table() {
-    val folderId = integer("id").autoIncrement().primaryKey()
+    val folderId = long("folder_id").primaryKey()
    val name = varchar("folder_name", 128)
     val userEmail = varchar("email", 128).references(UsersTable.userEmail)
-    val displayName = varchar("display_name", 256)
+    val userName = varchar("display_name", 256)
     val description = varchar("description", 128).nullable()
+    val date = date
 }
 
 data class Folder(
+        val folderId: Long,
         val name: String,
-        val folderId: Int,
         val userEmail: String,
         val userName: String,
         val description: String?
@@ -53,32 +54,34 @@ data class Folder(
  */
 
 object SetTable : Table() {
-    val setId = integer("setId").primaryKey().autoIncrement()
-    val folderId = integer("folderId").references(FolderTable.folderId).nullable()
+    val setId = long("set_id").primaryKey()
+    val folderId = long("folder_id").references(FolderTable.folderId).nullable()
     val userEmail = varchar("email", 128).references(UsersTable.userEmail)
-    val setName = varchar("setName", 128)
+    val setName = varchar("set_name", 128)
+    val termCount = integer("term_count")
 
 }
 
 //outgoing to user for get
 
 data class Set(
-        val setId: Int,
-        val folderId: Int?,
-        val setName : String,
-        val userEmail: String
+        val setId: Long,
+        val folderId: Long?,
+        val userEmail: String,
+        val setName: String,
+        val termCount: Int = 0
 
 )
 object TermTable : Table() {
-    val id = integer("termId").primaryKey().autoIncrement()
-    val setId = integer("setId").references(SetTable.setId)
-    val term = varchar("term", 512)
+    val termId = long("term_id").primaryKey()
+    val setId = long("set_id").references(SetTable.setId)
+    val question = varchar("term", 512)
     val answer = varchar("answer", 512)
 }
 data class Term(
-        val id: Int,
-        val setId: Int,
-        val term: String,
+        val termId: Long,
+        val setId: Long,
+        val question: String,
         val answer: String
 )
 

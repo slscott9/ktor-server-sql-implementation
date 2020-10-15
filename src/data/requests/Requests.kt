@@ -13,35 +13,9 @@ data class AccountRequest(
 )
 
 
-data class AddFolderRequest(
-        val folderName: String,
-        val userEmail: String
-
-) {
-}
-
-
-data class AddSetRequest(
-        val set: ClientSetRequest,
-        val termList: List<ClientTerm>
-) {
-}
-data class ClientSetRequest(
-        val userEmail: String,
-        val folderId: Int?,
-        val setName: String
-)
-
-data class ClientTerm(
-        val setId: Int,
-        val term: String,
-        val answer: String
-)
-
-
-data class SearchRequest(
-        val userEmail: String,
-        val searchParam: String
+data class NewSetRequest(
+        val set: Set,
+        val termList : List<Term>
 )
 
 
