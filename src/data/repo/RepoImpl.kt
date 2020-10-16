@@ -5,7 +5,9 @@ import com.sscott.data.tables.*
 import com.sscott.data.tables.Set
 import com.sscott.dbQuery
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.`java-time`.Date
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import java.time.LocalDate
 
 class RepoImpl : Repository {
 
@@ -60,6 +62,8 @@ class RepoImpl : Repository {
                 it[userEmail] = newSet.userEmail
                 it[setName] = newSet.setName
                 it[termCount] = newSet.termCount
+                it[timeStamp] = newSet.timeStamp
+
             }
         }
         return rowToSet(statement?.resultedValues?.get(0))
@@ -74,6 +78,7 @@ class RepoImpl : Repository {
                 this[TermTable.answer] = it.answer
                 this[TermTable.question] = it.question
                 this[TermTable.answer] = it.answer
+                this[TermTable.timeStamp] = it.timeStamp
 
             }
             return@dbQuery result.size == termList.size
@@ -102,7 +107,9 @@ class RepoImpl : Repository {
                 setId = row[SetTable.setId],
                 folderId = row[SetTable.folderId],
                 userEmail = row[SetTable.userEmail],
-                termCount = row[SetTable.termCount]
+                termCount = row[SetTable.termCount],
+                timeStamp = row[SetTable.timeStamp]
+
         )
     }
 
@@ -116,7 +123,9 @@ class RepoImpl : Repository {
                 folderId = row[FolderTable.folderId],
                 userEmail = row[FolderTable.userEmail],
                 userName = row[FolderTable.userName],
-                description = row[FolderTable.description]
+                description = row[FolderTable.description],
+            timeStamp = row[FolderTable.timeStamp]
+
         )
     }
 
@@ -128,7 +137,8 @@ class RepoImpl : Repository {
                 termId = row[TermTable.termId],
                 question = row[TermTable.question],
                 answer = row[TermTable.answer],
-                setId = row[TermTable.setId]
+                setId = row[TermTable.setId],
+            timeStamp = row[TermTable.timeStamp]
         )
     }
 

@@ -4,6 +4,10 @@ import com.sscott.data.tables.SetTable.autoIncrement
 import com.sscott.data.tables.SetTable.primaryKey
 import com.sscott.data.tables.UsersTable.primaryKey
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.`java-time`.Date
+import org.jetbrains.exposed.sql.`java-time`.date
+import org.jetbrains.exposed.sql.`java-time`.datetime
+import java.time.LocalDate
 
 /*
             UsersTable
@@ -36,7 +40,7 @@ object FolderTable: Table() {
     val userEmail = varchar("email", 128).references(UsersTable.userEmail)
     val userName = varchar("display_name", 256)
     val description = varchar("description", 128).nullable()
-    val date = date
+    val timeStamp = long("time_stamp")
 }
 
 data class Folder(
@@ -44,7 +48,8 @@ data class Folder(
         val name: String,
         val userEmail: String,
         val userName: String,
-        val description: String?
+        val description: String?,
+        val timeStamp: Long
 )
 
 /*
@@ -59,6 +64,9 @@ object SetTable : Table() {
     val userEmail = varchar("email", 128).references(UsersTable.userEmail)
     val setName = varchar("set_name", 128)
     val termCount = integer("term_count")
+    val timeStamp = long("time_stamp")
+
+
 
 }
 
@@ -69,7 +77,9 @@ data class Set(
         val folderId: Long?,
         val userEmail: String,
         val setName: String,
-        val termCount: Int = 0
+        val termCount: Int = 0,
+        val timeStamp: Long
+
 
 )
 object TermTable : Table() {
@@ -77,12 +87,17 @@ object TermTable : Table() {
     val setId = long("set_id").references(SetTable.setId)
     val question = varchar("term", 512)
     val answer = varchar("answer", 512)
+    val timeStamp = long("time_stamp")
+
+
 }
 data class Term(
         val termId: Long,
         val setId: Long,
         val question: String,
-        val answer: String
+        val answer: String,
+        val timeStamp: Long
+
 )
 
 
